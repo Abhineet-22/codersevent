@@ -2,12 +2,19 @@
 import base64
 from functools import lru_cache
 
+from pathlib import Path
 from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="INV_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="INV_",
+        env_file=(_BASE_DIR / ".env", _BASE_DIR / "env", ".env", "env"),
+        extra="ignore",
+    )
 
     env: str = "development"
     master_key: SecretStr  # base64url, 32 bytes. All other keys are derived from it (HKDF).

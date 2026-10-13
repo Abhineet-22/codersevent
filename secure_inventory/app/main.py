@@ -6,7 +6,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .audit import request_ip
@@ -91,6 +91,13 @@ async def _http(_: Request, e: StarletteHTTPException):
 async def _unhandled(request: Request, e: Exception):
     log.exception("unhandled error on %s %s", request.method, request.url.path)  # details to server log only
     return JSONResponse({"detail": "Internal server error"}, status_code=500)
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    if not settings.is_prod:
+        return RedirectResponse(url="/docs")
+    return {"status": "ok"}
 
 
 @app.get("/health", include_in_schema=False)
